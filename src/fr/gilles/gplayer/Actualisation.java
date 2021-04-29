@@ -7,7 +7,7 @@ public class Actualisation extends Thread {
         while(Main.f.isplaying()){
             try {
                 Thread.sleep(1000);
-                Main.f.Actualiser();
+                Main.f.actualiser();
 
             } catch (InterruptedException e) {
                 e.printStackTrace();

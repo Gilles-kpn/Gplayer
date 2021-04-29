@@ -12,19 +12,17 @@ import java.util.Objects;
 public class Panel extends JPanel {
     private String filename ;
     private  EmbeddedMediaPlayerComponent mediaPlayerComponent;
-    private boolean isplaying = false, loaded = false;
+    private boolean Displaying = false, loaded = false;
     private ArrayList<String> cache = new ArrayList<String>();
-
-
     private static final String[] ext = {"mp4","mkv","avi"};
     public Panel(){
         mediaPlayerComponent  = new EmbeddedMediaPlayerComponent(){
             public void playing(MediaPlayer mediaPlayer) {
                 super.playing(mediaPlayer);
-                Main.f.Actualiser();
+                Main.f.actualiser();
             }
             public void finished(MediaPlayer mediaPlayer) {
-                isplaying =false;
+                Displaying =false;
                 loaded = false;
 
             }
@@ -34,22 +32,14 @@ public class Panel extends JPanel {
 
         };
         mediaPlayerComponent.setBackground(Color.BLACK);
-
         this.setLayout(new BorderLayout());
-        this.add(mediaPlayerComponent);
-
-
+        this.add(mediaPlayerComponent,BorderLayout.CENTER);
     }
-    public void paintComponent(Graphics g){
-        mediaPlayerComponent.setSize(new Dimension(this.getWidth(),this.getHeight()));
-        mediaPlayerComponent.setPreferredSize(new Dimension(this.getWidth(),this.getHeight()));
-        mediaPlayerComponent.videoSurfaceComponent().setPreferredSize(new Dimension(this.getWidth(),this.getHeight()));
-        mediaPlayerComponent.videoSurfaceComponent().setPreferredSize(new Dimension(this.getWidth(),this.getHeight()));
-
+    public Component getVideoSurface(){
+        return this.mediaPlayerComponent.videoSurfaceComponent();
     }
-
-    private void imginfolder() {
-        String d = this.filename.substring(0,this.filename.lastIndexOf("/"));
+    private void videoInFolder() {
+        String d = this.filename.substring(0,this.filename.lastIndexOf(File.separator));
         File f = new File(d);
         if(f.isDirectory()) {
             for(File fi : Objects.requireNonNull(f.listFiles())) {
@@ -62,10 +52,7 @@ public class Panel extends JPanel {
             }
         }
     }
-
-
-    public boolean setFilename(String s)
-    {
+    public boolean setFilename(String s) {
         //verification de l'extension
         boolean find = false;
         for(String str : ext ){
@@ -93,21 +80,19 @@ public class Panel extends JPanel {
     }
     private void uploadVideoFile(){
         mediaPlayerComponent.mediaPlayer().media().startPaused(this.filename);
-        imginfolder();
+        videoInFolder();
         repaint();
     }
     public void playVideo(){
         mediaPlayerComponent.mediaPlayer().controls().play();
-
-        isplaying = true;
+        Displaying = true;
     }
-
     public void pause(){
         mediaPlayerComponent.mediaPlayer().controls().pause();
-        isplaying = false;
+        Displaying = false;
     }
-    public boolean isIsplaying(){
-        return  this.isplaying;
+    public boolean isDisplaying(){
+        return  this.Displaying;
     }
     public boolean isLoaded(){
         return this.loaded;
@@ -118,7 +103,12 @@ public class Panel extends JPanel {
         int sec = (int) ((mediaPlayerComponent.mediaPlayer().status().length()%3600000)%60000)/1000;
         return h+"h"+m+"min"+sec+"s";
     }
-
+    public void accelerer(){
+        mediaPlayerComponent.mediaPlayer().controls().skipTime(15000);
+    }
+    public void decelerer(){
+        mediaPlayerComponent.mediaPlayer().controls().setPosition(mediaPlayerComponent.mediaPlayer().status().time() - 15000);
+    }
     public String getNow(){
         int h =(int) mediaPlayerComponent.mediaPlayer().status().time()/3600000;
         int m = (int) ((mediaPlayerComponent.mediaPlayer().status().time()%3600000)/60000);
@@ -134,21 +124,32 @@ public class Panel extends JPanel {
         mediaPlayerComponent.mediaPlayer().audio().setVolume(a);
     }
     public void applyNext(){
-        if(cache.indexOf(filename) == cache.size()) {
-            this.filename = cache.get(0);
-        }else {
-            this.filename =cache.get(cache.indexOf(filename)+1);
+        if(isLoaded()){
+            if(cache.indexOf(filename) == cache.size()) {
+                this.filename = cache.get(0);
+            }else {
+                this.filename =cache.get(cache.indexOf(filename)+1);
+            }
+            setFilename(filename);
         }
-        setFilename(filename);
+
 
     }
     public void applyPrev(){
-        if(cache.indexOf(filename) == 0) {
-            this.filename = cache.get(cache.size()-1);
-        }else {
-            this.filename =cache.get(cache.indexOf(filename)-1);
+        if (isLoaded()) {
+            if(cache.indexOf(filename) == 0) {
+                this.filename = cache.get(cache.size()-1);
+            }else {
+                this.filename =cache.get(cache.indexOf(filename)-1);
+            }
+            setFilename(filename);
         }
-        setFilename(filename);
-    }
 
+    }
+    public void gotoPercent(float percent){
+        if (isLoaded()){
+            mediaPlayerComponent.mediaPlayer().controls().setPosition(percent);
+        }
+
+    }
 }
