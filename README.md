@@ -1,3 +1,2 @@
-# Gplayer
-Gplayer
- hh
+##Gplayer 
+Gplayer is a simple video player written in Java
